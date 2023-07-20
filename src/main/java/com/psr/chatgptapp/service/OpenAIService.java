@@ -7,9 +7,13 @@ import java.io.IOException;
 
 public interface OpenAIService {
 
-    String extractTextFromPdf(MultipartFile file) throws IOException;
+    String extractTextFromPdf(MultipartFile file,String password) throws IOException;
 
     ChatGptResponse chat(String prompt, String bearerToken);
 
-    ChatGptResponse callChatGptApi(MultipartFile file, String prompt) throws IOException;
+    ChatGptResponse callChatGptApi(MultipartFile file, String prompt,String password) throws IOException;
+
+    boolean savePdf(MultipartFile pdfFile);
+
+    String generateNewFileName(String originalFileName);
 }

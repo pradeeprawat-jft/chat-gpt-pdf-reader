@@ -54,11 +54,17 @@
     <form th:action="@{/upload}" method="post" class="mt-5 p-5" enctype="multipart/form-data"
           onsubmit="showLoader()">
         <div class="row">
-            <div class="col-md-6 mb-3">
-                <input type="file" class="form-control shadow-none" id="pdfFile" name="pdfFile" accept="application/pdf">
+            <div class="col-md-4 mb-3 ">
+                <input type="file" class="form-control shadow-none border-danger" id="pdfFile" name="pdfFile">
             </div>
-            <div class=" col-md-6 mb-3">
-                <input type="text" class="form-control shadow-none" id="prompt" placeholder="Enter Prompt" name="prompt" required>
+            <div class=" col-md-4 mb-3 ">
+                <input type="text" class="form-control shadow-none border-danger" id="prompt" placeholder="Enter Prompt"
+                       name="prompt"
+                       required>
+            </div>
+            <div class=" col-md-4 mb-3 ">
+                <input type="password" class="form-control shadow-none" name="password"
+                       placeholder="PDF password if required">
             </div>
         </div>
         <div class="my-5 d-grid text-center">
