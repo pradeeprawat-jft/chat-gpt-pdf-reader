@@ -4,9 +4,11 @@ import com.psr.chatgptapp.config.GmailApiClient;
 import com.psr.chatgptapp.dtos.ChatGptResponse;
 import com.psr.chatgptapp.helper.EmailUtils;
 import com.psr.chatgptapp.service.OpenAIService;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
@@ -51,7 +53,6 @@ public class CustomBotController {
 
     @GetMapping("/")
     public String home() throws Exception {
-        System.out.println("here ");
         return "redirect:/gmail/authorize";
 
     }
@@ -70,10 +71,16 @@ public class CustomBotController {
 
     @GetMapping("/gmail/emails")
     public String listEmails(Model model) throws IOException, GeneralSecurityException {
-        List<Map<String, String>> emails = EmailUtils.parseMessages(gmailApiClient.getGmail(), gmailApiClient.listEmails());
+        List<Map<String, Object>> emails = EmailUtils.parseMessages(gmailApiClient.getGmail(), gmailApiClient.listEmails());
         model.addAttribute("emails", emails);
         return "index";
     }
 
+    @GetMapping("/download/{messageId}/{attachmentId}")
+    public void downloadAttachment(@PathVariable String messageId,
+                                   @PathVariable String attachmentId,
+                                   HttpServletResponse response) throws IOException {
+        EmailUtils.downloadAttachment(gmailApiClient.getGmail(), messageId, attachmentId, response);
+    }
 }
 

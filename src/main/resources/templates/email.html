@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Emails List</title>
+</head>
+<body>
+<h1>Emails List</h1>
+<table>
+    <tr>
+        <th>From</th>
+        <th>Snippet</th>
+        <th>Attachments</th>
+        <th>Download</th>
+    </tr>
+    <tr th:each="email : ${emails}">
+        <td th:text="${email['title']}"></td>
+        <td th:text="${email['snippet']}"></td>
+        <td>
+<!--            <ul>-->
+<!--                <li th:each="attachment : ${email['attachments']}">-->
+<!--                    <p th:text="${attachment['filename']}"></p>-->
+<!--                    <p th:text="${attachment['attachmentId']}"></p>-->
+<!--                </li>-->
+<!--            </ul>-->
+            <ul>
+                <li th:each="attachment : ${email['attachments']}">
+                    <a th:href="@{/download/{messageId}/{attachmentId}(messageId=${email['messageId']},attachmentId=${attachment['attachmentId']})}"
+                       th:text="${attachment['filename']}">Download</a>
+                </li>
+            </ul>
+        </td>
+    </tr>
+</table>
+</body>
+</html>

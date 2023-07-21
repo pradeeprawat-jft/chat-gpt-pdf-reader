@@ -19,6 +19,11 @@
             text-align: center;
         }
 
+        .form-info
+        {
+            font-size: 15px;
+            padding: 17px;
+        }
         #loader div {
             position: absolute;
             top: 50%;
@@ -36,6 +41,10 @@
         .mail-heading {
             line-height: 27px;
             padding-bottom: 25px;
+        }
+
+        .list-style-none{
+            list-style: none;
         }
 
         p {
@@ -69,7 +78,7 @@
             <form th:action="@{/upload}" method="post" class="mt-5" enctype="multipart/form-data"
                   onsubmit="showLoader()">
                 <div class=" my-5 ">
-                    <input type="file" class="form-control shadow-none border-danger" id="pdfFile" name="pdfFile">
+                    <input type="file" class="form-control shadow-none border-danger" id="pdfFile" accept="application/pdf" name="pdfFile">
                 </div>
                 <div class=" my-5">
                     <input type="text" class="form-control shadow-none border-danger" id="prompt"
@@ -101,38 +110,48 @@
         <div class="content-box col-md-6 p-5 my-5">
             <div class="pb-5" style="display: flex;justify-content: space-around;align-items: flex-start;">
                 <h5 class="text-primary text-uppercase p-2 ">All Mails</h5>
-                <a th:href="@{/gmail/emails}" class="text-decoration-none"><button class="btn btn-primary text-uppercase ">Get Email</button></a>
+                <a th:href="@{/gmail/emails}" class="text-decoration-none">
+                    <button class="btn btn-primary text-uppercase ">Get Email</button>
+                </a>
             </div>
             <div class="accordion accordion-flush" id="accordionFlushExample">
-                <div class="accordion-item" th:each="email,i : ${emails}"
-                     style="    border: 2px solid lightgray;">
-                    <h2 class="accordion-header" th:id="'flush-heading' + ${i.index+1}">
-                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
-                                th:data-bs-target="'#flush-collapse' + ${i.index+1}" aria-expanded="false"
-                                aria-controls="flush-collapseOne" th:text="${email.get('from')}">
-                        </button>
-                    </h2>
-                    <div th:id="'flush-collapse' + ${i.index+1}" class="accordion-collapse collapse"
-                         th:aria-labelledby="'flush-heading' + ${i.index+1}"
-                         data-bs-parent="#accordionFlushExample">
-                        <div class="accordion-body" th:text="${email.get('snippet')}"></div>
-                        <span th:text="${email.get('attachments')}"></span>
+                <div class="accordion-item" th:each="email, i : ${emails}"
+                     style="border: 2px solid lightgray;">
+                    <div th:if="${email['attachments'] != null}">
+                        <h2 class="accordion-header" th:id="'flush-heading' + ${i.index + 1}">
+                            <button class="accordion-button collapsed text-info" type="button" data-bs-toggle="collapse"
+                                    th:data-bs-target="'#flush-collapse' + ${i.index + 1}" aria-expanded="false"
+                                    aria-controls="flush-collapseOne" th:text="${email['title']}">
+                            </button>
+                            <p class="form-info" th:text="${email['from']}"></p>
+                        </h2>
+                        <div th:id="'flush-collapse' + ${i.index + 1}" class="accordion-collapse collapse"
+                             th:aria-labelledby="'flush-heading' + ${i.index + 1}"
+                             data-bs-parent="#accordionFlushExample">
+                            <div class="accordion-body" th:text="${email['snippet']}"></div>
+                            <ul class="list-style-none">
+                                <li th:each="attachment : ${email['attachments']}">
+                                    <a class="text-decoration-none text-uppercase"
+                                       th:href="@{/download/{messageId}/{attachmentId}(messageId=${email['messageId']},attachmentId=${attachment['attachmentId']})}"
+                                       th:text="${attachment['filename']}" download>Download</a>
+                                </li>
+                            </ul>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
 
-<script>
-    function simulateResponse() {
-        setTimeout(function () {
-            hideLoader();
-        }, 9000);
-    }
+    <script>
+        function simulateResponse() {
+            setTimeout(function () {
+                hideLoader();
+            }, 9000);
+        }
 
-    document.querySelector('form').addEventListener('submit', simulateResponse);
-</script>
+        document.querySelector('form').addEventListener('submit', simulateResponse);
+    </script>
 
 </body>
 </html>
