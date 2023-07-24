@@ -17,6 +17,7 @@ import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 @Controller
 public class CustomBotController {
@@ -72,15 +73,42 @@ public class CustomBotController {
     @GetMapping("/gmail/emails")
     public String listEmails(Model model) throws IOException, GeneralSecurityException {
         List<Map<String, Object>> emails = EmailUtils.parseMessages(gmailApiClient.getGmail(), gmailApiClient.listEmails());
+        for (Map<String, Object> dataMap : emails) {
+            for (Map.Entry<String, Object> entry : dataMap.entrySet()) {
+                String key = entry.getKey();
+                Object value = entry.getValue();
+//                    System.out.println( key + "----" + value);
+            }
+        }
         model.addAttribute("emails", emails);
         return "index";
     }
 
-    @GetMapping("/download/{messageId}/{attachmentId}")
+    @GetMapping("/download/{messageId}/{filename}")
     public void downloadAttachment(@PathVariable String messageId,
-                                   @PathVariable String attachmentId,
+                                   @PathVariable String filename,
                                    HttpServletResponse response) throws IOException {
-        EmailUtils.downloadAttachment(gmailApiClient.getGmail(), messageId, attachmentId, response);
+        EmailUtils.downloadAttachment(gmailApiClient.getGmail(), messageId, filename, response);
     }
+
+//    @GetMapping("/download/{messageId}/{attachmentId}")
+//    public void downloadAttachment(
+//            @PathVariable String messageId,
+//            @PathVariable String attachmentId,
+//            HttpServletResponse response
+//    ) throws IOException {
+//        try {
+//            EmailUtils.downloadAttachment(gmailApiClient.getGmail(), messageId, attachmentId, response);
+//        } catch (IllegalArgumentException e) {
+//            response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+//            response.getWriter().write("Attachment not found.");
+//            response.getWriter().flush();
+//        } catch (IOException e) {
+//            // Handle other IO errors
+//            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+//            response.getWriter().write("Error downloading attachment.");
+//            response.getWriter().flush();
+//        }
+//    }
 }
 

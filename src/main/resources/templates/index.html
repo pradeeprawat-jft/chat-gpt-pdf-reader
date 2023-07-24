@@ -132,8 +132,8 @@
                             <ul class="list-style-none">
                                 <li th:each="attachment : ${email['attachments']}">
                                     <a class="text-decoration-none text-uppercase"
-                                       th:href="@{/download/{messageId}/{attachmentId}(messageId=${email['messageId']},attachmentId=${attachment['attachmentId']})}"
-                                       th:text="${attachment['filename']}" download>Download</a>
+                                       th:href="@{/download/{messageId}/{filename}(messageId=${email['messageId']},filename=${attachment['filename']})}"
+                                       th:text="${attachment['filename']}">Download</a>
                                 </li>
                             </ul>
                         </div>

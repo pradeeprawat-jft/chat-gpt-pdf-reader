@@ -53,7 +53,6 @@ public class GmailApiClient {
 
         AuthorizationCodeRequestUrl authorizationUrl = flow.newAuthorizationUrl()
                 .setRedirectUri(REDIRECT_URI);
-        System.out.println("getAuthorizationUrl done");
         return authorizationUrl.build();
     }
 
