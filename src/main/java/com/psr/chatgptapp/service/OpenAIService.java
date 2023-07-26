@@ -13,7 +13,13 @@ public interface OpenAIService {
 
     ChatGptResponse callChatGptApi(MultipartFile file, String prompt,String password) throws IOException;
 
-    boolean savePdf(MultipartFile pdfFile);
+    ChatGptResponse callChatGptApi(String info, String prompt,String password);
+
+    boolean savePdf(MultipartFile pdfFile,String prompt,String response);
+    boolean savePdf(String pdfFile,String prompt,String response);
+
 
     String generateNewFileName(String originalFileName);
+
+    String getUserName() throws IOException;
 }

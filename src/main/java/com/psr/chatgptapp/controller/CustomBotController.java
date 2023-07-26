@@ -15,14 +15,18 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.security.GeneralSecurityException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
+
 
 @Controller
 public class CustomBotController {
     private final OpenAIService service;
     private final GmailApiClient gmailApiClient;
+    private String extractText;
+    private String modifiedFileName;
 
     public CustomBotController(OpenAIService service, GmailApiClient gmailApiClient) {
         this.service = service;
@@ -32,30 +36,38 @@ public class CustomBotController {
 
     @PostMapping("/upload")
     public String handleUpload(@RequestParam("pdfFile") MultipartFile pdfFile,
+                               @RequestParam("OriginalFilename") String filename,
                                @RequestParam("prompt") String prompt,
                                @RequestParam(value = "password", required = false) String password,
                                Model model) {
-        try {
-            if (pdfFile.isEmpty()) {
-                model.addAttribute("error", "pdf Should be there!!");
-                return "index";
-            }
-            boolean status = service.savePdf(pdfFile);
-            if (status) {
+        if (filename.equals("No file selected")) {
+            try {
+                if (pdfFile.isEmpty()) {
+                    model.addAttribute("error", "pdf Should be there!!");
+                    return "index";
+                }
                 ChatGptResponse response = service.callChatGptApi(pdfFile, prompt + " form given info", password);
                 model.addAttribute("response", response.getChoices().get(0).getMessage().getContent());
+                service.savePdf(pdfFile, prompt, response.getChoices().get(0).getMessage().getContent());
+            } catch (Exception e) {
+                model.addAttribute("error", e.getMessage());
             }
-        } catch (Exception e) {
-            model.addAttribute("error", e.getMessage());
+        } else {
+            try {
+                String infoFormPdf = extractText;
+                ChatGptResponse response = service.callChatGptApi(infoFormPdf, prompt + " form given info", password);
+                model.addAttribute("response", response.getChoices().get(0).getMessage().getContent());
+                service.savePdf(modifiedFileName, prompt, response.getChoices().get(0).getMessage().getContent());
+            } catch (Exception e) {
+                model.addAttribute("error", e.getMessage());
+            }
         }
         return "index";
     }
 
-
     @GetMapping("/")
     public String home() throws Exception {
         return "redirect:/gmail/authorize";
-
     }
 
     @GetMapping("/gmail/authorize")
@@ -73,42 +85,37 @@ public class CustomBotController {
     @GetMapping("/gmail/emails")
     public String listEmails(Model model) throws IOException, GeneralSecurityException {
         List<Map<String, Object>> emails = EmailUtils.parseMessages(gmailApiClient.getGmail(), gmailApiClient.listEmails());
-        for (Map<String, Object> dataMap : emails) {
-            for (Map.Entry<String, Object> entry : dataMap.entrySet()) {
-                String key = entry.getKey();
-                Object value = entry.getValue();
-//                    System.out.println( key + "----" + value);
-            }
-        }
         model.addAttribute("emails", emails);
         return "index";
     }
 
     @GetMapping("/download/{messageId}/{filename}")
-    public void downloadAttachment(@PathVariable String messageId,
-                                   @PathVariable String filename,
-                                   HttpServletResponse response) throws IOException {
-        EmailUtils.downloadAttachment(gmailApiClient.getGmail(), messageId, filename, response);
+    public void downloadAttachment(
+            @PathVariable String messageId,
+            @PathVariable String filename,
+            HttpServletResponse response
+    ) throws IOException {
+        modifiedFileName = generateNewFileName(filename);
+        try {
+            System.out.println(" gmailApiClient.getGmail() == " + gmailApiClient.getGmail());
+            extractText = EmailUtils.downloadAttachment(gmailApiClient.getGmail(), messageId, filename, modifiedFileName, response);
+        } catch (IllegalArgumentException e) {
+            response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+            response.getWriter().write("Attachment not found.");
+            response.getWriter().flush();
+        } catch (IOException e) {
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            response.getWriter().write("Error downloading attachment.");
+            response.getWriter().flush();
+        }
     }
 
-//    @GetMapping("/download/{messageId}/{attachmentId}")
-//    public void downloadAttachment(
-//            @PathVariable String messageId,
-//            @PathVariable String attachmentId,
-//            HttpServletResponse response
-//    ) throws IOException {
-//        try {
-//            EmailUtils.downloadAttachment(gmailApiClient.getGmail(), messageId, attachmentId, response);
-//        } catch (IllegalArgumentException e) {
-//            response.setStatus(HttpServletResponse.SC_NOT_FOUND);
-//            response.getWriter().write("Attachment not found.");
-//            response.getWriter().flush();
-//        } catch (IOException e) {
-//            // Handle other IO errors
-//            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-//            response.getWriter().write("Error downloading attachment.");
-//            response.getWriter().flush();
-//        }
-//    }
+
+    public String generateNewFileName(String originalFileName) {
+        String timeStamp = new SimpleDateFormat("yyyyMMddHHmmss").format(new Date());
+        return "file_" + timeStamp + "_" + originalFileName;
+    }
+
+
 }
 

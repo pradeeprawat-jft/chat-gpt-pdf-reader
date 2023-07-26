@@ -37,11 +37,7 @@
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-starter-web</artifactId>
 			</dependency>
-<!--		<dependency>-->
-<!--			<groupId>commons-codec</groupId>-->
-<!--			<artifactId>commons-codec</artifactId>-->
-<!--			<version>1.15</version>-->
-<!--		</dependency>-->
+
 			<dependency>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-starter-thymeleaf</artifactId>
@@ -70,16 +66,11 @@
 			<version>4.0.1</version>
 			<scope>provided</scope>
 		</dependency>
-
-
-
 		<dependency>
 			<groupId>com.sun.mail</groupId>
 			<artifactId>jakarta.mail</artifactId>
 			<version>2.0.0</version> <!-- Or the latest version available -->
 		</dependency>
-
-
 		<dependency>
 			<groupId>org.projectlombok</groupId>
 			<artifactId>lombok</artifactId>

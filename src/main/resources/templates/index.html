@@ -3,7 +3,7 @@
 <head>
     <title>GPT</title>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta content="width=device-width, initial-scale=1" name="viewport">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <style>
@@ -19,11 +19,11 @@
             text-align: center;
         }
 
-        .form-info
-        {
+        .form-info {
             font-size: 15px;
-            padding: 17px;
+            padding: 17px 17px 0 17px;
         }
+
         #loader div {
             position: absolute;
             top: 50%;
@@ -33,7 +33,7 @@
 
         .content-box {
             border: 2px solid #c9c9c9;
-            box-shadow: 1px 1px 11px 7px #d5d5d5;
+            box-shadow: 1px 1px 11px 1px #d5d5d5;
             background: ghostwhite;
             border-radius: 10px;
         }
@@ -43,8 +43,25 @@
             padding-bottom: 25px;
         }
 
-        .list-style-none{
+        .link-font {
+            font-size: 13px;
+        }
+
+        .list-style-none {
             list-style: none;
+            padding: 0 18px;
+        }
+
+        .email-snippet {
+            letter-spacing: 1px;
+            line-height: 29px;
+            color: #797979;
+            font-family: sans-serif;
+        }
+
+        li {
+            font-size: 15px;
+            color: #616161;
         }
 
         p {
@@ -52,13 +69,20 @@
             letter-spacing: 1px;
             font-size: 20px;
         }
+
+        .box-shadow-none {
+            outline: none;
+            box-shadow: none;
+        }
+
+        .selectedFilename {
+            display: none;
+        }
     </style>
     <script>
         function showLoader() {
             document.getElementById("loader").style.display = "block";
         }
-
-
         function hideLoader() {
             document.getElementById("loader").style.display = "none";
         }
@@ -74,28 +98,34 @@
 
 <div class="container-fluid mt-3 p-5">
     <div class="row">
-        <div class="col-md-6 p-5">
-            <form th:action="@{/upload}" method="post" class="mt-5" enctype="multipart/form-data"
-                  onsubmit="showLoader()">
-                <div class=" my-5 ">
-                    <input type="file" class="form-control shadow-none border-danger" id="pdfFile" accept="application/pdf" name="pdfFile">
+        <div class="content-box col-lg-5 col-md-12 p-5 mx-lg-5">
+            <form enctype="multipart/form-data" method="post" onsubmit="showLoader()"
+                  th:action="@{/upload}">
+                <div class=" mb-5">
+                    <input accept="application/pdf" class="form-control shadow-none border-danger" id="pdfFile"
+                           name="pdfFile" type="file">
                 </div>
+                <div class="mb-5 file-input-container">
+                    <input class="form-control shadow-none selectedFilename" id="selectedFilename"
+                           name="OriginalFilename" readonly
+                           type="text" value="No file selected">
+                </div>
+
                 <div class=" my-5">
-                    <input type="text" class="form-control shadow-none border-danger" id="prompt"
+                    <input class="form-control shadow-none border-danger" id="prompt" name="prompt"
                            placeholder="Enter Prompt"
-                           name="prompt"
-                           required>
+                           required
+                           type="text">
                 </div>
                 <div class="my-3">
-                    <input type="password" class="form-control shadow-none" name="password"
-                           placeholder="PDF password if required">
+                    <input class="form-control shadow-none" name="password" placeholder="PDF password if required"
+                           type="password">
                 </div>
                 <div class="my-5 d-grid text-center">
-                    <button type="submit" class="btn btn-primary">ASK</button>
-
+                    <button class="btn btn-primary" type="submit">ASK</button>
                 </div>
             </form>
-            <div th:if="${error}" class="my-5 p-5">
+            <div class="my-5 p-5" th:if="${error}">
                 <h3 class="text-secondary">Error </h3>
                 <p class="text-danger"><code th:text="${error}"></code></p>
             </div>
@@ -106,52 +136,107 @@
             </div>
         </div>
 
-
-        <div class="content-box col-md-6 p-5 my-5">
+        <div class="content-box col-lg-6 col-md-12 p-5 my-5">
             <div class="pb-5" style="display: flex;justify-content: space-around;align-items: flex-start;">
                 <h5 class="text-primary text-uppercase p-2 ">All Mails</h5>
-                <a th:href="@{/gmail/emails}" class="text-decoration-none">
-                    <button class="btn btn-primary text-uppercase ">Get Email</button>
+                <a class="text-decoration-none" th:href="@{/gmail/emails}">
+                    <button class="btn btn-primary text-uppercase " onclick="fetchEmails()">Get Email</button>
                 </a>
             </div>
             <div class="accordion accordion-flush" id="accordionFlushExample">
-                <div class="accordion-item" th:each="email, i : ${emails}"
-                     style="border: 2px solid lightgray;">
-                    <div th:if="${email['attachments'] != null}">
-                        <h2 class="accordion-header" th:id="'flush-heading' + ${i.index + 1}">
-                            <button class="accordion-button collapsed text-info" type="button" data-bs-toggle="collapse"
-                                    th:data-bs-target="'#flush-collapse' + ${i.index + 1}" aria-expanded="false"
-                                    aria-controls="flush-collapseOne" th:text="${email['title']}">
-                            </button>
-                            <p class="form-info" th:text="${email['from']}"></p>
-                        </h2>
-                        <div th:id="'flush-collapse' + ${i.index + 1}" class="accordion-collapse collapse"
-                             th:aria-labelledby="'flush-heading' + ${i.index + 1}"
-                             data-bs-parent="#accordionFlushExample">
-                            <div class="accordion-body" th:text="${email['snippet']}"></div>
-                            <ul class="list-style-none">
-                                <li th:each="attachment : ${email['attachments']}">
-                                    <a class="text-decoration-none text-uppercase"
-                                       th:href="@{/download/{messageId}/{filename}(messageId=${email['messageId']},filename=${attachment['filename']})}"
-                                       th:text="${attachment['filename']}">Download</a>
-                                </li>
-                            </ul>
+                <div th:each="email, i : ${emails}">
+                    <div class="accordion-item" style="border: 2px solid lightgray;"
+                         th:if="${email['from'] != null}">
+                        <div th:if="${email['attachments'] != null}">
+                            <h2 class="accordion-header" th:id="'flush-heading' + ${i.index + 1}">
+                                <button aria-controls="flush-collapseOne" aria-expanded="false"
+                                        class="accordion-button collapsed text-info text-uppercase box-shadow-none"
+                                        data-bs-toggle="collapse" style="box-shadow: none;"
+                                        th:data-bs-target="'#flush-collapse' + ${i.index + 1}" th:text="${email['title']}" type="button">
+                                </button>
+                                <p class="form-info" th:text="'Form : '+${email['from']}"></p>
+                            </h2>
+                            <div class="accordion-collapse collapse" data-bs-parent="#accordionFlushExample"
+                                 th:aria-labelledby="'flush-heading' + ${i.index + 1}"
+                                 th:id="'flush-collapse' + ${i.index + 1}">
+                                <div class="accordion-body email-snippet" th:text="${email['snippet']}"></div>
+                                <ul class="list-style-none">
+                                    <li th:each="attachment : ${email['attachments']}">Attachment :
+                                        <a class="text-decoration-none text-uppercase link-font downloadLink"
+                                           th:href="@{/download/{messageId}/{filename}(messageId=${email['messageId']},filename=${attachment['filename']})}"
+                                           th:text="${attachment['filename']}">Download</a>
+                                    </li>
+                                </ul>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
+</div>
 
-    <script>
-        function simulateResponse() {
-            setTimeout(function () {
+<script>
+    function simulateResponse() {
+        setTimeout(function () {
+            hideLoader();
+        }, 9000);
+    }
+
+    document.querySelector('form').addEventListener('submit', simulateResponse);
+    document.addEventListener('DOMContentLoaded', function () {
+        // Add click event listener to all elements with class "downloadLink"
+        const downloadLinks = document.querySelectorAll('.downloadLink');
+        downloadLinks.forEach(link => {
+            link.addEventListener('click', function (event) {
+                event.preventDefault(); // Prevent default link behavior
+
+                const downloadUrl = link.getAttribute('href');
+                const filename = link.textContent;
+
+                const downloadLink = document.createElement('a');
+                downloadLink.href = downloadUrl;
+                downloadLink.download = filename;
+
+                document.body.appendChild(downloadLink);
+                downloadLink.click();
+                document.body.removeChild(downloadLink);
+
+                const selectedFilename = document.getElementById('selectedFilename');
+                console.log(filename);
+                selectedFilename.style.display = 'block';
+                selectedFilename.readOnly = false;
+                selectedFilename.value = filename;
+                selectedFilename.readOnly = true;
+
+                const fileFilename = document.getElementById('pdfFile');
+                fileFilename.style.display = 'none';
+            });
+        });
+    });
+    function fetchEmails() {
+        showLoader();
+        fetch("http://localhost:8080/gmail/emails")
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error("Network response was not ok");
+                }
+                let myResponse = response.json();
+                console.log(myResponse);
+                return myResponse;
+            })
+            .then(data => {
+                console.log(data);
                 hideLoader();
-            }, 9000);
-        }
+            })
+            .catch(error => {
+                console.error("Error fetching emails:", error);
+                hideLoader();
+            });
+    }
+</script>
 
-        document.querySelector('form').addEventListener('submit', simulateResponse);
-    </script>
+</script>
 
 </body>
 </html>

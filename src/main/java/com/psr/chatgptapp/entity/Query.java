@@ -20,6 +20,14 @@ public class Query {
     @Column(unique = true)
     public String image;
 
+    @Column(name = "gpt_prompt")
+    public String prompt;
+
+    @Column(name = "gpt_response")
+    public String response;
+
+    public String userName;
+
     @CreationTimestamp
     @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "create_date")

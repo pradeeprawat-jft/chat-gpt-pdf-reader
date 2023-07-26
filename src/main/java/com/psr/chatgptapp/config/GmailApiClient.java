@@ -13,6 +13,7 @@ import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.api.services.gmail.Gmail;
 import com.google.api.services.gmail.GmailScopes;
 import com.google.api.services.gmail.model.Message;
+import com.google.api.services.gmail.model.Profile;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -37,20 +38,16 @@ public class GmailApiClient {
     public String getAuthorizationUrl() throws Exception {
 
         final NetHttpTransport HTTP_TRANSPORT = GoogleNetHttpTransport.newTrustedTransport();
-
         InputStream credentialsStream = GmailApiClient.class.getResourceAsStream(CREDENTIALS_FILE_PATH);
         if (credentialsStream == null) {
             throw new FileNotFoundException("Resource not found: " + CREDENTIALS_FILE_PATH);
         }
-
         GoogleClientSecrets clientSecrets = GoogleClientSecrets.load(JSON_FACTORY,
                 new InputStreamReader(credentialsStream));
-
         AuthorizationCodeFlow flow = new GoogleAuthorizationCodeFlow.Builder(
                 HTTP_TRANSPORT, JSON_FACTORY, clientSecrets, SCOPES)
                 .setAccessType("offline")
                 .build();
-
         AuthorizationCodeRequestUrl authorizationUrl = flow.newAuthorizationUrl()
                 .setRedirectUri(REDIRECT_URI);
         return authorizationUrl.build();
@@ -82,7 +79,6 @@ public class GmailApiClient {
                 .setClientSecrets(clientSecrets)
                 .build()
                 .setFromTokenResponse(response);
-
         gmail = new Gmail.Builder(HTTP_TRANSPORT, JSON_FACTORY, credential)
                 .setApplicationName(APPLICATION_NAME)
                 .build();
@@ -94,6 +90,15 @@ public class GmailApiClient {
         }
         String user = "me";
         return gmail.users().messages().list(user).execute().getMessages();
+    }
+
+    public String getUserEmail() throws IOException {
+        if (gmail == null) {
+            throw new IllegalStateException("GmailApiClient is not authorized.");
+        }
+        String user = "me";
+        Profile profile = gmail.users().getProfile(user).execute();
+        return profile.getEmailAddress();
     }
 
     public Gmail getGmail() {

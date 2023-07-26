@@ -1,4 +1,6 @@
 package com.psr.chatgptapp.service.impl;
+
+import com.psr.chatgptapp.config.GmailApiClient;
 import com.psr.chatgptapp.dtos.ChatGPTRequest;
 import com.psr.chatgptapp.dtos.ChatGptResponse;
 import com.psr.chatgptapp.entity.Query;
@@ -26,21 +28,21 @@ import java.util.Date;
 @Service
 public class OpenAiServiceImpl implements OpenAIService {
 
+    private final SavePDF fileUpload;
+    private final GmailApiClient gmailApiClient;
+    private final QueryRepo repo;
+    private final RestTemplate template;
     @Value(("${openai.api.url}"))
     private String apiURL;
-
     @Value(("${openai.model}"))
     private String myModel;
-
     @Value(("${openai.api.key}"))
     private String myKey;
 
-    private final SavePDF fileUpload;
-    private final QueryRepo repo;
 
-    private final RestTemplate template;
-    public OpenAiServiceImpl(SavePDF fileUpload, QueryRepo repo, RestTemplate template) {
+    public OpenAiServiceImpl(SavePDF fileUpload, GmailApiClient gmailApiClient, QueryRepo repo, RestTemplate template) {
         this.fileUpload = fileUpload;
+        this.gmailApiClient = gmailApiClient;
         this.repo = repo;
         this.template = template;
     }
@@ -61,12 +63,12 @@ public class OpenAiServiceImpl implements OpenAIService {
             return extractedText;
         } catch (IOException e) {
             e.printStackTrace();
-            throw  e;
+            throw e;
         }
     }
 
     @Override
-    public ChatGptResponse chat (String prompt, String bearerToken){
+    public ChatGptResponse chat(String prompt, String bearerToken) {
         HttpHeaders headers = new HttpHeaders();
         headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
         headers.set("Authorization", bearerToken);
@@ -75,10 +77,11 @@ public class OpenAiServiceImpl implements OpenAIService {
         ResponseEntity<ChatGptResponse> response = template.postForEntity(apiURL, httpRequest, ChatGptResponse.class);
         return response.getBody();
     }
+
     @Override
-    public ChatGptResponse callChatGptApi (MultipartFile file, String prompt,String password) throws IOException {
+    public ChatGptResponse callChatGptApi(MultipartFile file, String prompt, String password) throws IOException {
         try {
-            String extractedText = extractTextFromPdf(file,password);
+            String extractedText = extractTextFromPdf(file, password);
             return chat(extractedText + " " + prompt, "Bearer " + myKey);
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -86,14 +89,22 @@ public class OpenAiServiceImpl implements OpenAIService {
     }
 
     @Override
-    public boolean savePdf(MultipartFile pdfFile) {
+    public ChatGptResponse callChatGptApi(String info, String prompt, String password) {
+        return chat(info + " " + prompt, "Bearer " + myKey);
+    }
+
+    @Override
+    public boolean savePdf(MultipartFile pdfFile, String prompt, String response) {
         Query info = new Query();
         String newFileName = null;
         boolean status;
         try {
             newFileName = generateNewFileName(pdfFile.getOriginalFilename());
-            status = fileUpload.fileUpload(pdfFile,newFileName);
+            status = fileUpload.fileUpload(pdfFile, newFileName);
             info.setImage(newFileName);
+            info.setPrompt(prompt);
+            info.setResponse(response);
+            info.setUserName(getUserName());
             repo.save(info);
         } catch (Exception e) {
             return false;
@@ -102,9 +113,29 @@ public class OpenAiServiceImpl implements OpenAIService {
     }
 
     @Override
+    public boolean savePdf(String pdfFile, String prompt, String response) {
+        Query info = new Query();
+        try {
+            info.setImage(pdfFile);
+            info.setPrompt(prompt);
+            info.setResponse(response);
+            info.setUserName(getUserName());
+            repo.save(info);
+        } catch (Exception e) {
+            return false;
+        }
+        return true;
+    }
+
+    @Override
     public String generateNewFileName(String originalFileName) {
         String timeStamp = new SimpleDateFormat("yyyyMMddHHmmss").format(new Date());
         return "file_" + timeStamp + "_" + originalFileName;
+    }
+
+    @Override
+    public String getUserName() throws IOException {
+        return gmailApiClient.getUserEmail();
     }
 
 }
