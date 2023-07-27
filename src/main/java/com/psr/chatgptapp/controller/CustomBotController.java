@@ -7,10 +7,7 @@ import com.psr.chatgptapp.service.OpenAIService;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -19,6 +16,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 
 @Controller
@@ -35,6 +33,7 @@ public class CustomBotController {
 
 
     @PostMapping("/upload")
+    @ResponseBody
     public String handleUpload(@RequestParam("pdfFile") MultipartFile pdfFile,
                                @RequestParam("OriginalFilename") String filename,
                                @RequestParam("prompt") String prompt,
@@ -43,14 +42,14 @@ public class CustomBotController {
         if (filename.equals("No file selected")) {
             try {
                 if (pdfFile.isEmpty()) {
-                    model.addAttribute("error", "pdf Should be there!!");
+                    model.addAttribute("response", "pdf Should be there!!");
                     return "index";
                 }
                 ChatGptResponse response = service.callChatGptApi(pdfFile, prompt + " form given info", password);
                 model.addAttribute("response", response.getChoices().get(0).getMessage().getContent());
                 service.savePdf(pdfFile, prompt, response.getChoices().get(0).getMessage().getContent());
             } catch (Exception e) {
-                model.addAttribute("error", e.getMessage());
+                model.addAttribute("response", e.getMessage());
             }
         } else {
             try {
@@ -59,10 +58,10 @@ public class CustomBotController {
                 model.addAttribute("response", response.getChoices().get(0).getMessage().getContent());
                 service.savePdf(modifiedFileName, prompt, response.getChoices().get(0).getMessage().getContent());
             } catch (Exception e) {
-                model.addAttribute("error", e.getMessage());
+                model.addAttribute("response", e.getMessage());
             }
         }
-        return "index";
+        return (String) model.getAttribute("response");
     }
 
     @GetMapping("/")
@@ -109,13 +108,9 @@ public class CustomBotController {
             response.getWriter().flush();
         }
     }
-
-
     public String generateNewFileName(String originalFileName) {
         String timeStamp = new SimpleDateFormat("yyyyMMddHHmmss").format(new Date());
         return "file_" + timeStamp + "_" + originalFileName;
     }
-
-
 }
 
