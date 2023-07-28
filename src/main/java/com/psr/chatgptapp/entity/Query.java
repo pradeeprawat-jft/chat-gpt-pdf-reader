@@ -18,7 +18,7 @@ public class Query {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     public Integer id;
     @Column(unique = true)
-    public String image;
+    public String attachment;
 
     @Column(name = "gpt_prompt")
     public String prompt;

@@ -3,6 +3,7 @@ package com.psr.chatgptapp.controller;
 import com.psr.chatgptapp.config.GmailApiClient;
 import com.psr.chatgptapp.dtos.ChatGptResponse;
 import com.psr.chatgptapp.helper.EmailUtils;
+import com.psr.chatgptapp.repo.QueryRepo;
 import com.psr.chatgptapp.service.OpenAIService;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.stereotype.Controller;
@@ -16,7 +17,6 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 
 
 @Controller
@@ -26,9 +26,12 @@ public class CustomBotController {
     private String extractText;
     private String modifiedFileName;
 
-    public CustomBotController(OpenAIService service, GmailApiClient gmailApiClient) {
+    private final QueryRepo repo;
+
+    public CustomBotController(OpenAIService service, GmailApiClient gmailApiClient, QueryRepo repo) {
         this.service = service;
         this.gmailApiClient = gmailApiClient;
+        this.repo = repo;
     }
 
 
@@ -62,6 +65,13 @@ public class CustomBotController {
             }
         }
         return (String) model.getAttribute("response");
+    }
+
+    @GetMapping("/chat/list")
+    public String getList(Model model)
+    {
+        model.addAttribute("chats", repo.findAll());
+        return "chat-list";
     }
 
     @GetMapping("/")
@@ -108,6 +118,8 @@ public class CustomBotController {
             response.getWriter().flush();
         }
     }
+
+
     public String generateNewFileName(String originalFileName) {
         String timeStamp = new SimpleDateFormat("yyyyMMddHHmmss").format(new Date());
         return "file_" + timeStamp + "_" + originalFileName;

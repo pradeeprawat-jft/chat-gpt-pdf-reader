@@ -101,7 +101,7 @@ public class OpenAiServiceImpl implements OpenAIService {
         try {
             newFileName = generateNewFileName(pdfFile.getOriginalFilename());
             status = fileUpload.fileUpload(pdfFile, newFileName);
-            info.setImage(newFileName);
+            info.setAttachment(newFileName);
             info.setPrompt(prompt);
             info.setResponse(response);
             info.setUserName(getUserName());
@@ -116,7 +116,7 @@ public class OpenAiServiceImpl implements OpenAIService {
     public boolean savePdf(String pdfFile, String prompt, String response) {
         Query info = new Query();
         try {
-            info.setImage(pdfFile);
+            info.setAttachment(pdfFile);
             info.setPrompt(prompt);
             info.setResponse(response);
             info.setUserName(getUserName());

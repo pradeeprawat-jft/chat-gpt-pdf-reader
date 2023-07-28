@@ -10,14 +10,10 @@ import org.springframework.web.client.RestTemplate;
 @Component
 @EnableScheduling
 public class ApiScheduler {
-
     private final RestTemplate restTemplate;
-
-
     public ApiScheduler(RestTemplate restTemplate) {
         this.restTemplate = restTemplate;
     }
-
     @Scheduled(fixedDelay =  (1000 * 60 * 3), initialDelay = (1000 * 60 * 2))
     public void callApiWithParameters() {
         String apiUrl = "http://localhost:8080/gmail/emails";
@@ -25,5 +21,4 @@ public class ApiScheduler {
         System.out.println(response);
         System.out.println("======================================scheduler starter==========================================");
     }
-
 }
