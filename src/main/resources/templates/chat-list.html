@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:insert="~{fragments/header :: header}"></head>
+<body>
+<nav th:insert="~{fragments/header :: nav}"></nav>
+
+<div class="container my-5 py-5">
+
+  <div class="row">
+    <table class="table">
+      <thead>
+      <tr>
+        <th scope="col">id</th>
+        <th scope="col">Prompt</th>
+        <th scope="col">Response</th>
+        <th scope="col">Attachment</th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr th:each="chat,i : ${chats}">
+        <td class="p-3" th:text="${i.index+1}"></td>
+        <td class="p-3" th:text="${chat.prompt}"></td>
+        <td class="p-3" th:text="${chat.response}" ></td>
+        <td class="p-3" th:text="${chat.attachment}"></td>
+      </tr>
+      </tbody>
+    </table>
+  </div>
+</div>>
+
+<footer th:insert="~{fragments/footer :: footer}"></footer>
+</body>
+</html>
